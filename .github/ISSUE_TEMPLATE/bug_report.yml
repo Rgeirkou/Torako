@@ -1,0 +1,55 @@
+name: Bug report
+description: Report a problem with the Tyrako API
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What happened, and what did you expect instead?
+      placeholder: Describe the problem in one or two sentences.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The exact request/commands you ran. Redact API keys and secrets!
+      placeholder: |
+        1. POST /tw with payload ...
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect the API to return/do?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What actually happened? Include the response status/body (secrets redacted).
+    validations:
+      required: true
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      description: Go version, OS, Docker/PostgreSQL/Redis versions, and how you ran the API.
+      placeholder: |
+        - Go 1.26.5, Windows 11
+        - Docker Compose stack (postgres 17, redis 7)
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Relevant server logs, redacted. Do not paste API keys or tokens.
+      render: shell
+    validations:
+      required: false
