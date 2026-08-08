@@ -1,0 +1,5 @@
+bin/
+.env
+.env.production
+*.log
+api.exe
