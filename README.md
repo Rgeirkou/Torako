@@ -1,29 +1,37 @@
 # Tyrako
 
+[![License: MIT](https://img.shields.io/github/license/Rgeirkou/Torako?style=flat-square)](LICENSE)
+[![Go 1.26](https://img.shields.io/badge/Go-1.26-00ADD8?style=flat-square&logo=go&logoColor=white)](https://go.dev/dl/)
+[![CI](https://img.shields.io/github/actions/workflow/status/Rgeirkou/Torako/ci.yml?style=flat-square&logo=github&logoColor=white)](https://github.com/Rgeirkou/Torako/actions/workflows/ci.yml)
+[![Status: Production](https://img.shields.io/badge/status-production-2ea44f?style=flat-square)](docs/roadmap.md)
+[![Docs](https://img.shields.io/badge/docs-full%20guide-2f81f7?style=flat-square)](docs/index.md)
+
 Production-grade REST API for **TrueMoney Wallet gift redemption**, built with Go. The service exposes authenticated redemption endpoints, an admin key-management API, and all-time success statistics — engineered for performance, horizontal scalability, and defense-in-depth security.
 
 ## Features
 
-- **TrueMoney redemption API** — redeem gift codes or gift links via `GET` / `POST` with transparent passthrough of the upstream response.
-- **API key authentication** — scoped (`tw`, `admin`), ranked (member / partner / admin), with SHA-256 hashed storage and constant-time verification.
-- **Full key lifecycle** — create, list, revoke, and rotate keys; optional expiration; per-key usage tracking.
-- **Rate limiting** — fixed-window limits per key tier and per client IP, backed by in-memory or shared Redis state for multi-instance deployments.
-- **Statistics** — all-time totals (amount, count, errors) with per-channel breakdown and reference-based deduplication.
-- **Concurrency safety** — concurrent duplicate redemptions are coalesced via `singleflight`; nothing is cached across requests, so every retry is re-verified upstream.
-- **Security hardening** — request ID tracing, structured logging with path redaction, CORS, security headers, panic recovery, and strict input validation.
-- **Zero-downtime operations** — embedded SQL migrations applied atomically at startup, graceful shutdown, multi-stage non-root Docker image.
+| Area | What you get |
+|---|---|
+| **Redemption API** | Redeem gift codes or gift links via `GET` / `POST` with transparent passthrough of the upstream response |
+| **API key auth** | Scoped (`tw`, `admin`), ranked (member / partner / admin), SHA-256 hashed storage and constant-time verification |
+| **Key lifecycle** | Create, list, revoke, and rotate keys; optional expiration; per-key usage tracking |
+| **Rate limiting** | Fixed-window limits per key tier and per client IP, backed by in-memory or shared Redis state |
+| **Statistics** | All-time totals (amount, count, errors) with per-channel breakdown and reference-based deduplication |
+| **Concurrency safety** | Duplicate redemptions coalesced via `singleflight`; nothing cached across requests, every retry re-verified upstream |
+| **Security hardening** | Request ID tracing, structured logging with path redaction, CORS, security headers, panic recovery, strict input validation |
+| **Zero-downtime ops** | Embedded SQL migrations applied atomically at startup, graceful shutdown, multi-stage non-root Docker image |
 
 ## Tech Stack
 
-| Layer         | Technology                                  |
-| ------------- | ------------------------------------------- |
-| Language      | Go 1.26                                     |
-| HTTP Router   | chi v5                                      |
-| Database      | PostgreSQL 17 (pgx v5, embedded migrations) |
-| Rate Limiting | Redis 7 (shared state across instances)     |
-| Deploy        | Docker, Docker Compose, Caddy               |
+| Layer | Technology |
+|---|---|
+| Language | Go 1.26 |
+| HTTP Router | chi v5 |
+| Database | PostgreSQL 17 (pgx v5, embedded migrations) |
+| Rate Limiting | Redis 7 (shared state across instances) |
+| Deploy | Docker, Docker Compose, Caddy |
 
-## Quick Start
+## Setup
 
 ```bash
 # 1. Start PostgreSQL and create the database
@@ -39,6 +47,41 @@ make run
 
 See [Getting Started](docs/getting-started.md) for details, including the bootstrap API key.
 
+## Usage
+
+All endpoints except `GET /stats` require an API key in the `X-API-Key` header:
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| POST | `/tw` | `tw` | Redeem a TrueMoney gift (JSON body) |
+| GET | `/tw/{phone}/{gift}` | `tw` | Redeem a TrueMoney gift (path params) |
+| POST | `/keys` | admin | Create an API key |
+| GET | `/keys` | admin | List API keys |
+| DELETE | `/keys/{id}` | admin | Revoke an API key |
+| POST | `/keys/{id}/rotate` | admin | Rotate an API key |
+| GET | `/stats` | — | All-time statistics (public) |
+
+```bash
+curl -X POST "https://api.example.com/tw" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: your_api_key" \
+  -d '{
+    "phone": "0812345678",
+    "gift": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  }'
+```
+
+Full endpoint reference, error shapes, and status codes in [docs/api-reference.md](docs/api-reference.md).
+
+## Development
+
+```bash
+make run               # start the API locally
+make test              # unit tests with race detector + coverage
+make lint              # golangci-lint
+make test-integration  # PostgreSQL + Redis integration tests
+```
+
 ## Documentation
 
 The full documentation lives in [`docs/`](docs/index.md):
@@ -52,15 +95,6 @@ The full documentation lives in [`docs/`](docs/index.md):
 - [Deployment](docs/deployment.md) — production stack, scaling, operations
 - [Roadmap](docs/roadmap.md) — implemented and planned work
 
-## Development
-
-```bash
-make run               # start the API locally
-make test              # unit tests with race detector + coverage
-make lint              # golangci-lint
-make test-integration  # PostgreSQL + Redis integration tests
-```
-
 ## License
 
-Released under the [MIT License](LICENSE). Copyright (c) 2026 **ByteInDev** and **Rgeirkou**.
+[MIT](LICENSE) © [ByteInDev](https://github.com/Rgeirkou) & Rgeirkou.
